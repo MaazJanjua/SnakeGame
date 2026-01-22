@@ -25,6 +25,7 @@ const blocks = {};
 let snake = [{ x: 1, y: 3 }];
 let direction = "down";
 let intervalId = null;
+let timerIntervalId = null;
 let food = null;
 
 function createBlock() {
@@ -60,7 +61,6 @@ function render() {
   if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= cols) {
     clearInterval(intervalId);
     intervalId = null; // 🔑 ye zaroori hai
-    // alert("Game Over");
     modal.style.display = "flex";
     startGameModal.style.display = "none";
     gameOverModal.style.display = "flex";
@@ -68,6 +68,7 @@ function render() {
   }
   // If you click on the food tab (the food is shifted to the next position {function call is made which is line no. 98 below}) // FOOD CONSUMER
   if (head.x == food.x && head.y == food.y) {
+    score += 100;
     handleFoodEat();
     currentScore();
     updateHighScore();
@@ -84,10 +85,6 @@ function render() {
     blocks[`${segment.x}-${segment.y}`].classList.add("fill");
   });
 }
-// intervalId = setInterval(() => {
-//   render();
-// }, 300);
-// render()
 function snakeDirection() {
   addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
@@ -138,9 +135,20 @@ function startGame() {
   intervalId = setInterval(() => {
     render();
   }, 300);
+  timerIntervalId = setInterval(() => {
+    let [min, sec] = time.split("-").map(Number);
+    if (sec == 59) {
+      min += 1;
+      sec = 0;
+    } else {
+      sec += 1;
+    }
+    time = `${min}-${sec}`;
+    TimeElement.innerText = time;
+  }, 1000);
 }
-//Restart Game After GameEnd
 
+//Restart Game After GameEnd
 restartButon.addEventListener("click", restartGame);
 function restartGame() {
   modal.style.display = "none";
@@ -148,11 +156,17 @@ function restartGame() {
   snake.forEach((segment) => {
     blocks[`${segment.x}-${segment.y}`].classList.remove("fill");
   });
+
   // 🧹 clear old food
   if (food) {
     blocks[`${food.x}-${food.y}`].classList.remove("food");
-  } 
-
+  }
+  score = 0;
+  time = `00-00`;
+  ScoreElement.innerText = score;
+  TimeElement.innerText = time;
+  highScoreElement.innerText = highScore;
+  currentScore();
   // 🔄 reset values
   snake = [{ x: 1, y: 3 }];
   direction = "down";
@@ -160,14 +174,9 @@ function restartGame() {
   generateFood();
   renderFood();
   startGame();
-  score = 0;
-  currentScore();
-  // score = 0;
-  time = `00-00`;
 }
 //Current Score
 function currentScore() {
-  score += 1;
   ScoreElement.innerHTML = score;
 }
 
